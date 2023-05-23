@@ -1,0 +1,80 @@
+<html>
+<head>
+<title>main.py</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #cc7832;}
+.s1 { color: #a9b7c6;}
+.s2 { color: #808080;}
+.s3 { color: #6a8759;}
+.s4 { color: #6897bb;}
+</style>
+</head>
+<body bgcolor="#2b2b2b">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+main.py</font>
+</center></td></tr></table>
+<pre><span class="s0">import </span><span class="s1">openpyxl</span>
+<span class="s0">import </span><span class="s1">re</span>
+
+<span class="s2">#Open Excel workbook that's in source folder</span>
+<span class="s2">#or replace with filepath to file, for example:</span>
+<span class="s2"># wb = openpyxl.load_workbook(r'C:\Users\ericl\Desktop\intern\files\uoce sections.xlsx')</span>
+<span class="s1">wb = openpyxl.load_workbook(</span><span class="s3">'uoce sections.xlsx'</span><span class="s1">)</span>
+
+<span class="s2">#Open worksheet</span>
+<span class="s1">ws = wb[</span><span class="s3">'Sheet1'</span><span class="s1">]</span>
+<span class="s2"># ws = wb.worksheets[0]</span>
+<span class="s1">sectionList = []</span>
+<span class="s1">otherList = []</span>
+
+<span class="s0">def </span><span class="s1">version_key(x):</span>
+    <span class="s0">return </span><span class="s1">[int(i) </span><span class="s0">for </span><span class="s1">i </span><span class="s0">in </span><span class="s1">x.split(</span><span class="s3">'.'</span><span class="s1">)]</span>
+
+
+<span class="s2">#Reiterate every row</span>
+<span class="s0">for </span><span class="s1">x </span><span class="s0">in </span><span class="s1">range(</span><span class="s4">2</span><span class="s0">, </span><span class="s1">ws.max_row+</span><span class="s4">1</span><span class="s1">):</span>
+    <span class="s2">#Get the cell value</span>
+    <span class="s1">cell = ws.cell(x</span><span class="s0">, </span><span class="s1">column=</span><span class="s4">1</span><span class="s1">).value</span>
+
+    <span class="s2">#Splitting the cell into two sections and get the number only.</span>
+    <span class="s2">#(Section 301.1 = 'Section', '301.1')</span>
+    <span class="s1">section = cell.split(</span><span class="s3">&quot; &quot;</span><span class="s0">,</span><span class="s4">1</span><span class="s1">)</span>
+    <span class="s1">sectionNumber = section[</span><span class="s4">1</span><span class="s1">]</span>
+    <span class="s2"># sectionNumber = re.sub('[a-zA-Z]','',sectionNumber)</span>
+
+    <span class="s2">#If it is a number, add it to sectionList</span>
+    <span class="s0">if </span><span class="s1">sectionNumber </span><span class="s0">is not None</span><span class="s1">:</span>
+        <span class="s2">#If section number contains non-numeric characters, add to other list.</span>
+        <span class="s0">if </span><span class="s1">re.search(</span><span class="s3">'[@_!#$%^&amp;*()&lt;&gt;?/|}{~:]'</span><span class="s0">, </span><span class="s1">sectionNumber) </span><span class="s0">or </span><span class="s1">re.search(</span><span class="s3">'[a-zA-Z]'</span><span class="s0">, </span><span class="s1">sectionNumber):</span>
+            <span class="s1">otherList.append(sectionNumber)</span>
+        <span class="s0">else</span><span class="s1">:</span>
+            <span class="s1">sectionList.append(sectionNumber)</span>
+
+<span class="s2"># print(otherList)</span>
+<span class="s2"># print(sorted(sectionList, key=version_key))</span>
+<span class="s1">sortedList = sorted(sectionList</span><span class="s0">, </span><span class="s1">key=version_key)</span>
+
+<span class="s2">#Create new sheet called 'Sorted'</span>
+<span class="s1">wb.create_sheet(</span><span class="s3">'Sorted'</span><span class="s1">)</span>
+<span class="s1">ws = wb[</span><span class="s3">'Sorted'</span><span class="s1">]</span>
+
+<span class="s2">#Column for unsorted section numbers that contains non-numericals such as S101 or 101.1(2)</span>
+<span class="s1">ws.cell(row=</span><span class="s4">1</span><span class="s0">,</span><span class="s1">column=</span><span class="s4">1</span><span class="s1">).value = </span><span class="s3">&quot;Unsorted List&quot;</span>
+<span class="s1">startingrow = </span><span class="s4">2</span>
+<span class="s0">for </span><span class="s1">x </span><span class="s0">in </span><span class="s1">otherList:</span>
+    <span class="s1">ws.cell(startingrow</span><span class="s0">, </span><span class="s1">column=</span><span class="s4">1</span><span class="s1">).value = </span><span class="s3">&quot;Section &quot; </span><span class="s1">+ x</span>
+    <span class="s1">startingrow += </span><span class="s4">1</span>
+
+<span class="s2">#Column for sorted section numbers</span>
+<span class="s1">ws.cell(row=</span><span class="s4">1</span><span class="s0">, </span><span class="s1">column=</span><span class="s4">2</span><span class="s1">).value = </span><span class="s3">&quot;Sorted List&quot;</span>
+<span class="s1">startingrow = </span><span class="s4">2</span>
+<span class="s0">for </span><span class="s1">x </span><span class="s0">in </span><span class="s1">sortedList:</span>
+    <span class="s1">ws.cell(startingrow</span><span class="s0">, </span><span class="s1">column=</span><span class="s4">2</span><span class="s1">).value = </span><span class="s3">&quot;Section &quot; </span><span class="s1">+ x</span>
+    <span class="s1">startingrow +=</span><span class="s4">1</span>
+
+<span class="s1">wb.save(</span><span class="s3">'uoce sections.xlsx'</span><span class="s1">)</span></pre>
+</body>
+</html>
